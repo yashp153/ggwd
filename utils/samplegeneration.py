@@ -217,68 +217,68 @@ def generate_sample(static_arguments,
     # Whiten and bandpass the strain (also for noise-only samples)
     # -------------------------------------------------------------------------
 
-    for det in ('H1', 'L1'):
+    # for det in ('H1', 'L1'):
 
-        # Get the whitening parameters
-        segment_duration = static_arguments['whitening_segment_duration']
-        max_filter_duration = static_arguments['whitening_max_filter_duration']
+    #     # Get the whitening parameters
+    #     segment_duration = static_arguments['whitening_segment_duration']
+    #     max_filter_duration = static_arguments['whitening_max_filter_duration']
 
-        # Whiten the strain (using the built-in whitening of PyCBC)
-        # We don't need to remove the corrupted samples here, because we
-        # crop the strain later on
-        strain[det] = \
-            strain[det].whiten(segment_duration=segment_duration,
-                               max_filter_duration=max_filter_duration,
-                               remove_corrupted=False)
+    #     # Whiten the strain (using the built-in whitening of PyCBC)
+    #     # We don't need to remove the corrupted samples here, because we
+    #     # crop the strain later on
+    #     strain[det] = \
+    #         strain[det].whiten(segment_duration=segment_duration,
+    #                            max_filter_duration=max_filter_duration,
+    #                            remove_corrupted=False)
 
-        # Get the limits for the bandpass
-        bandpass_lower = static_arguments['bandpass_lower']
-        bandpass_upper = static_arguments['bandpass_upper']
+    #     # Get the limits for the bandpass
+    #     bandpass_lower = static_arguments['bandpass_lower']
+    #     bandpass_upper = static_arguments['bandpass_upper']
 
-        # Apply a high-pass to remove everything below `bandpass_lower`;
-        # If bandpass_lower = 0, do not apply any high-pass filter.
-        if bandpass_lower != 0:
-            strain[det] = strain[det].highpass_fir(frequency=bandpass_lower,
-                                                   remove_corrupted=False,
-                                                   order=512)
+    #     # Apply a high-pass to remove everything below `bandpass_lower`;
+    #     # If bandpass_lower = 0, do not apply any high-pass filter.
+    #     if bandpass_lower != 0:
+    #         strain[det] = strain[det].highpass_fir(frequency=bandpass_lower,
+    #                                                remove_corrupted=False,
+    #                                                order=512)
 
-        # Apply a low-pass filter to remove everything above `bandpass_upper`.
-        # If bandpass_upper = sampling rate, do not apply any low-pass filter.
-        if bandpass_upper != target_sampling_rate:
-            strain[det] = strain[det].lowpass_fir(frequency=bandpass_upper,
-                                                  remove_corrupted=False,
-                                                  order=512)
+    #     # Apply a low-pass filter to remove everything above `bandpass_upper`.
+    #     # If bandpass_upper = sampling rate, do not apply any low-pass filter.
+    #     if bandpass_upper != target_sampling_rate:
+    #         strain[det] = strain[det].lowpass_fir(frequency=bandpass_upper,
+    #                                               remove_corrupted=False,
+    #                                               order=512)
     if waveform_params is not None:
-        for det in ('H1', 'L1'):
-            # Get the whitening parameters
-            segment_duration = static_arguments['whitening_segment_duration']
-            max_filter_duration = static_arguments['whitening_max_filter_duration']
+        # for det in ('H1', 'L1'):
+        #     # Get the whitening parameters
+        #     segment_duration = static_arguments['whitening_segment_duration']
+        #     max_filter_duration = static_arguments['whitening_max_filter_duration']
 
-            # Whiten the strain (using the built-in whitening of PyCBC)
-            # We don't need to remove the corrupted samples here, because we
-            # crop the strain later on
-            noise[det] = \
-                noise[det].whiten(segment_duration=segment_duration,
-                                max_filter_duration=max_filter_duration,
-                                remove_corrupted=False)
+        #     # Whiten the strain (using the built-in whitening of PyCBC)
+        #     # We don't need to remove the corrupted samples here, because we
+        #     # crop the strain later on
+        #     noise[det] = \
+        #         noise[det].whiten(segment_duration=segment_duration,
+        #                         max_filter_duration=max_filter_duration,
+        #                         remove_corrupted=False)
 
-            # Get the limits for the bandpass
-            bandpass_lower = static_arguments['bandpass_lower']
-            bandpass_upper = static_arguments['bandpass_upper']
+        #     # Get the limits for the bandpass
+        #     bandpass_lower = static_arguments['bandpass_lower']
+        #     bandpass_upper = static_arguments['bandpass_upper']
 
-            # Apply a high-pass to remove everything below `bandpass_lower`;
-            # If bandpass_lower = 0, do not apply any high-pass filter.
-            if bandpass_lower != 0:
-                noise[det] = noise[det].highpass_fir(frequency=bandpass_lower,
-                                                    remove_corrupted=False,
-                                                    order=512)
+        #     # Apply a high-pass to remove everything below `bandpass_lower`;
+        #     # If bandpass_lower = 0, do not apply any high-pass filter.
+        #     if bandpass_lower != 0:
+        #         noise[det] = noise[det].highpass_fir(frequency=bandpass_lower,
+        #                                             remove_corrupted=False,
+        #                                             order=512)
 
-            # Apply a low-pass filter to remove everything above `bandpass_upper`.
-            # If bandpass_upper = sampling rate, do not apply any low-pass filter.
-            if bandpass_upper != target_sampling_rate:
-                noise[det] = noise[det].lowpass_fir(frequency=bandpass_upper,
-                                                    remove_corrupted=False,
-                                                    order=512)
+        #     # Apply a low-pass filter to remove everything above `bandpass_upper`.
+        #     # If bandpass_upper = sampling rate, do not apply any low-pass filter.
+        #     if bandpass_upper != target_sampling_rate:
+        #         noise[det] = noise[det].lowpass_fir(frequency=bandpass_upper,
+        #                                             remove_corrupted=False,
+        #                                             order=512)
         for det in ('H1', 'L1'):
             # Define some shortcuts for slicing
             a = event_time - seconds_before_event
