@@ -66,7 +66,7 @@ if __name__ == '__main__':
     # -------------------------------------------------------------------------
 
     # Disable output buffering ('flush' option is not available for Python 2)
-    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+    sys.stdout = os.fdopen(sys.stdout.fileno(), 'w')
 
     # Start the stopwatch
     script_start = time.time()
@@ -364,10 +364,14 @@ if __name__ == '__main__':
     # Group all samples by detector
     h1_samples = [_['h1_strain'] for _ in all_samples]
     l1_samples = [_['l1_strain'] for _ in all_samples]
+    h1_nsamples = [_['h1_noise'] for _ in all_samples]
+    l1_nsamples = [_['l1_noise'] for _ in all_samples]
 
     # Stack recordings along first axis
     h1_samples = np.vstack(h1_samples)
     l1_samples = np.vstack(l1_samples)
+    h1_nsamples = np.vstack(h1_nsamples)
+    l1_nsamples = np.vstack(l1_nsamples)
     
     # Compute the mean and standard deviation for both detectors as the median
     # of the means / standard deviations for each sample. This is more robust
@@ -378,6 +382,12 @@ if __name__ == '__main__':
              l1_mean=np.median(np.mean(l1_samples, axis=1), axis=0),
              h1_std=np.median(np.std(h1_samples, axis=1), axis=0),
              l1_std=np.median(np.std(l1_samples, axis=1), axis=0))
+    
+    nparam = \
+        dict(h1_mean=np.median(np.mean(h1_nsamples, axis=1), axis=0),
+             l1_mean=np.median(np.mean(l1_nsamples, axis=1), axis=0),
+             h1_std=np.median(np.std(h1_nsamples, axis=1), axis=0),
+             l1_std=np.median(np.std(l1_nsamples, axis=1), axis=0))
     
     print('Done!\n')
 
@@ -393,13 +403,17 @@ if __name__ == '__main__':
                             injection_samples=dict(),
                             noise_samples=dict(),
                             normalization_parameters=normalization_parameters,
+                            nparam=nparam,
                             static_arguments=static_arguments)
-
     # Collect and add samples (with and without injection)
     for sample_type in ('injection_samples', 'noise_samples'):
-        for key in ('event_time', 'h1_strain', 'l1_strain'):
+        for key in ('event_time', 'h1_strain', 'l1_strain', 'h1_noise', 'l1_noise'):
             if samples[sample_type]:
-                value = np.array([_[key] for _ in list(samples[sample_type])])
+                try:
+                    print(key)
+                    value = np.array([_[key] for _ in list(samples[sample_type])])
+                except KeyError:
+                    value = None
             else:
                 value = None
             sample_file_dict[sample_type][key] = value
@@ -426,7 +440,7 @@ if __name__ == '__main__':
     sample_file.to_hdf(file_path=sample_file_path)
 
     print('Done!')
-
+    print(sample_file_dict.keys())
     # Get file size in MB and print the result
     sample_file_size = os.path.getsize(sample_file_path) / 1024**2
     print('Size of resulting HDF file: {:.2f}MB'.format(sample_file_size))

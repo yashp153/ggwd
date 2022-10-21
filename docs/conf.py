@@ -95,7 +95,7 @@ latex_elements = {
     'papersize': 'a4paper',
 
     # Additional stuff for the LaTeX preamble.
-    'preamble': '\usepackage[utf8]{inputenc}',
+    'preamble': '\\usepackage[utf8]{inputenc}',
 
 }
 

@@ -210,7 +210,7 @@ def generate_sample(static_arguments,
                                 'l1_snr': snrs['L1']}
 
         # Also add the waveform parameters we have sampled
-        for key, value in waveform_params.iteritems():
+        for key, value in waveform_params.items():
             injection_parameters[key] = value
 
     # -------------------------------------------------------------------------
@@ -248,7 +248,45 @@ def generate_sample(static_arguments,
             strain[det] = strain[det].lowpass_fir(frequency=bandpass_upper,
                                                   remove_corrupted=False,
                                                   order=512)
+    if waveform_params is not None:
+        for det in ('H1', 'L1'):
+            # Get the whitening parameters
+            segment_duration = static_arguments['whitening_segment_duration']
+            max_filter_duration = static_arguments['whitening_max_filter_duration']
 
+            # Whiten the strain (using the built-in whitening of PyCBC)
+            # We don't need to remove the corrupted samples here, because we
+            # crop the strain later on
+            noise[det] = \
+                noise[det].whiten(segment_duration=segment_duration,
+                                max_filter_duration=max_filter_duration,
+                                remove_corrupted=False)
+
+            # Get the limits for the bandpass
+            bandpass_lower = static_arguments['bandpass_lower']
+            bandpass_upper = static_arguments['bandpass_upper']
+
+            # Apply a high-pass to remove everything below `bandpass_lower`;
+            # If bandpass_lower = 0, do not apply any high-pass filter.
+            if bandpass_lower != 0:
+                noise[det] = noise[det].highpass_fir(frequency=bandpass_lower,
+                                                    remove_corrupted=False,
+                                                    order=512)
+
+            # Apply a low-pass filter to remove everything above `bandpass_upper`.
+            # If bandpass_upper = sampling rate, do not apply any low-pass filter.
+            if bandpass_upper != target_sampling_rate:
+                noise[det] = noise[det].lowpass_fir(frequency=bandpass_upper,
+                                                    remove_corrupted=False,
+                                                    order=512)
+        for det in ('H1', 'L1'):
+            # Define some shortcuts for slicing
+            a = event_time - seconds_before_event
+            b = event_time + seconds_after_event
+
+            # Cut the strain to the desired length
+            noise[det] = noise[det].time_slice(a, b)
+            
     # -------------------------------------------------------------------------
     # Cut strain (and signal) time series to the pre-specified length
     # -------------------------------------------------------------------------
@@ -281,8 +319,14 @@ def generate_sample(static_arguments,
     # The whitened strain is numerically on the order of O(1), so we can save
     # it as a 32-bit float (unlike the original signal, which is down to
     # O(10^-{30}) and thus requires 64-bit floats).
-    sample = {'event_time': event_time,
-              'h1_strain': np.array(strain['H1']).astype(np.float32),
-              'l1_strain': np.array(strain['L1']).astype(np.float32)}
-
+    if waveform_params is None:
+        sample = {'event_time': event_time,
+            'h1_strain': np.array(strain['H1']).astype(np.float32),
+            'l1_strain': np.array(strain['L1']).astype(np.float32)}
+    else:
+        sample = {'event_time': event_time,
+            'h1_strain': np.array(strain['H1']).astype(np.float32),
+            'l1_strain': np.array(strain['L1']).astype(np.float32),
+            'h1_noise': np.array(noise['H1']).astype(np.float32),
+            'l1_noise': np.array(noise['L1']).astype(np.float32)}
     return sample, injection_parameters

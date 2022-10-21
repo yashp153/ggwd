@@ -140,19 +140,19 @@ class SampleFile:
             self.data['command_line_arguments'] = \
                 dict(hdf_file['command_line_arguments'].attrs)
             self.data['command_line_arguments'] = \
-                {key: value.decode('ascii') for key, value in
+                {key: value  for key, value in
                  iteritems(self.data['command_line_arguments'])}
 
             # Read in dict with static_arguments
             self.data['static_arguments'] = \
                 dict(hdf_file['static_arguments'].attrs)
             self.data['static_arguments'] = \
-                {key: value.decode('ascii') for key, value in
+                {key: value  for key, value in
                  iteritems(self.data['static_arguments'])}
 
             # Read in group containing injection samples
             self.data['injection_samples'] = dict()
-            for key in ('event_time', 'h1_strain', 'l1_strain'):
+            for key in ('event_time', 'h1_strain', 'l1_strain','h1_noise','l1_noise'):
                 try:
                     self.data['injection_samples'][key] = \
                         np.array(hdf_file['injection_samples'][key])
